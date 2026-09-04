@@ -1,7 +1,7 @@
 {
-  "commit": "0a9c85064d4954419edfe104026757e6126da699",
-  "commit_short": "0a9c850",
+  "commit": "b38679fab348b33b73af8492f3e85c7824a7e3c1",
+  "commit_short": "b38679f",
   "message": "ci: catena di build con pubblicazione su branch deploy e notifiche",
-  "built_at": "2026-09-04T14:07:00Z",
-  "run": "https://github.com/stefanoriffaldi/game-on-the-go-18/actions/runs/33881852538"
+  "built_at": "2026-09-04T14:09:04Z",
+  "run": "https://github.com/stefanoriffaldi/game-on-the-go-18/actions/runs/33882047607"
 }
