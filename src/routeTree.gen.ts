@@ -10,33 +10,73 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CommunityRouteImport } from './routes/community'
+import { Route as GuideRouteImport } from './routes/guide'
+import { Route as NovitaRouteImport } from './routes/novita'
+import { Route as RecensioniRouteImport } from './routes/recensioni'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommunityRoute = CommunityRouteImport.update({
+  id: '/community',
+  path: '/community',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideRoute = GuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NovitaRoute = NovitaRouteImport.update({
+  id: '/novita',
+  path: '/novita',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecensioniRoute = RecensioniRouteImport.update({
+  id: '/recensioni',
+  path: '/recensioni',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
+  '/guide': typeof GuideRoute
+  '/novita': typeof NovitaRoute
+  '/recensioni': typeof RecensioniRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
+  '/guide': typeof GuideRoute
+  '/novita': typeof NovitaRoute
+  '/recensioni': typeof RecensioniRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/community': typeof CommunityRoute
+  '/guide': typeof GuideRoute
+  '/novita': typeof NovitaRoute
+  '/recensioni': typeof RecensioniRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/community' | '/guide' | '/novita' | '/recensioni'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/community' | '/guide' | '/novita' | '/recensioni'
+  id: '__root__' | '/' | '/community' | '/guide' | '/novita' | '/recensioni'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CommunityRoute: typeof CommunityRoute
+  GuideRoute: typeof GuideRoute
+  NovitaRoute: typeof NovitaRoute
+  RecensioniRoute: typeof RecensioniRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +88,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/community': {
+      id: '/community'
+      path: '/community'
+      fullPath: '/community'
+      preLoaderRoute: typeof CommunityRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide': {
+      id: '/guide'
+      path: '/guide'
+      fullPath: '/guide'
+      preLoaderRoute: typeof GuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/novita': {
+      id: '/novita'
+      path: '/novita'
+      fullPath: '/novita'
+      preLoaderRoute: typeof NovitaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recensioni': {
+      id: '/recensioni'
+      path: '/recensioni'
+      fullPath: '/recensioni'
+      preLoaderRoute: typeof RecensioniRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CommunityRoute: CommunityRoute,
+  GuideRoute: GuideRoute,
+  NovitaRoute: NovitaRoute,
+  RecensioniRoute: RecensioniRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
