@@ -85,25 +85,25 @@ function Header() {
         <div className="hidden items-center gap-7 text-sm md:flex">
           <Link
             to="/recensioni"
-            className="text-muted transition-colors hover:text-foreground"
+            className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Recensioni
           </Link>
           <Link
             to="/novita"
-            className="text-muted transition-colors hover:text-foreground"
+            className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Novità
           </Link>
           <Link
             to="/guide"
-            className="text-muted transition-colors hover:text-foreground"
+            className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Guide
           </Link>
           <Link
             to="/community"
-            className="text-muted transition-colors hover:text-foreground"
+            className="text-muted-foreground transition-colors hover:text-foreground"
           >
             Community
           </Link>
@@ -128,7 +128,7 @@ function Hero() {
       <h1 className="mt-4 max-w-[26ch] font-display text-5xl font-bold leading-[0.98] tracking-tight text-balance md:text-7xl">
         La scena dei videogiochi, raccontata a tutto volume
       </h1>
-      <p className="mt-5 max-w-[52ch] text-lg text-pretty text-muted">
+      <p className="mt-5 max-w-[52ch] text-lg text-pretty text-muted-foreground">
         Recensioni senza sconti, novità ogni giorno e la community più curata
         d'Italia. Tutto ciò che conta, senza rumore.
       </p>
@@ -157,7 +157,7 @@ function FeaturedGames() {
         <h2 className="font-display text-2xl font-bold tracking-tight">
           Giochi in evidenza
         </h2>
-        <span className="font-mono text-xs text-muted">(a)</span>
+        <span className="font-mono text-xs text-muted-foreground">(a)</span>
       </div>
       <div className="grid gap-5 md:grid-cols-2">
         <article className="card-glow rounded-xl bg-surface/70 p-5 ring-1 ring-border backdrop-blur-md transition-shadow duration-300 hover:card-glow-hover">
@@ -165,12 +165,12 @@ function FeaturedGames() {
             <span className="font-mono text-xs uppercase tracking-wider text-neon">
               In uscita
             </span>
-            <span className="font-mono text-xs text-muted">11 ago</span>
+            <span className="font-mono text-xs text-muted-foreground">11 ago</span>
           </div>
           <h3 className="font-display text-xl font-bold tracking-tight">
             Nebula Drift
           </h3>
-          <p className="mt-1.5 text-sm text-pretty text-muted">
+          <p className="mt-1.5 text-sm text-pretty text-muted-foreground">
             Corse al limite dell'orbita, ogni drift ti travolge.
           </p>
         </article>
@@ -179,12 +179,12 @@ function FeaturedGames() {
             <span className="font-mono text-xs uppercase tracking-wider text-neon-2">
               In evidenza
             </span>
-            <span className="font-mono text-xs text-muted">Recensione</span>
+            <span className="font-mono text-xs text-muted-foreground">Recensione</span>
           </div>
           <h3 className="font-display text-xl font-bold tracking-tight">
             Ombra di Ferro
           </h3>
-          <p className="mt-1.5 text-sm text-pretty text-muted">
+          <p className="mt-1.5 text-sm text-pretty text-muted-foreground">
             RPG d'azione in un regno che respira davvero.
           </p>
         </article>
@@ -224,7 +224,7 @@ function LatestReviews() {
         <h2 className="font-display text-2xl font-bold tracking-tight">
           Ultime recensioni
         </h2>
-        <span className="font-mono text-xs text-muted">(b)</span>
+        <span className="font-mono text-xs text-muted-foreground">(b)</span>
       </div>
       <div className="grid gap-5 sm:grid-cols-3">
         {reviews.map((review) => (
@@ -245,7 +245,7 @@ function LatestReviews() {
                 <span className="font-display text-lg font-bold text-neon">
                   {review.score}
                 </span>
-                <span className="font-mono text-xs text-muted">
+                <span className="font-mono text-xs text-muted-foreground">
                   {review.genre}
                 </span>
               </div>
@@ -272,7 +272,7 @@ function NewsList() {
     <section className="animate-rise py-12" style={{ animationDelay: "360ms" }}>
       <div className="mb-6 flex items-end justify-between">
         <h2 className="font-display text-2xl font-bold tracking-tight">Novità</h2>
-        <span className="font-mono text-xs text-muted">(c)</span>
+        <span className="font-mono text-xs text-muted-foreground">(c)</span>
       </div>
       <div className="overflow-hidden rounded-xl bg-surface/70 ring-1 ring-border backdrop-blur-md">
         {newsItems.map((item, index) => (
@@ -287,7 +287,7 @@ function NewsList() {
               <span className="font-mono text-xs text-neon">{item.day}</span>
               <span className="text-sm font-medium">{item.title}</span>
             </div>
-            <span className="font-mono text-xs text-muted">{item.tag}</span>
+            <span className="font-mono text-xs text-muted-foreground">{item.tag}</span>
           </Link>
         ))}
       </div>
@@ -298,7 +298,7 @@ function NewsList() {
 function Footer() {
   return (
     <footer className="relative border-t border-border py-8">
-      <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-5 text-sm text-muted md:flex-row md:items-center">
+      <div className="mx-auto flex max-w-6xl flex-col items-start justify-between gap-4 px-5 text-sm text-muted-foreground md:flex-row md:items-center">
         <span className="font-display text-base font-bold tracking-tight text-foreground">
           PIXEL<span className="text-neon">FRAME</span>
         </span>

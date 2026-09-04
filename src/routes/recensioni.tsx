@@ -29,13 +29,13 @@ function RecensioniPage() {
         <div className="absolute -left-40 -top-40 h-[520px] w-[520px] rounded-full bg-neon/25 blur-[120px]" />
       </div>
       <main className="relative mx-auto max-w-6xl px-5 py-24">
-        <Link to="/" className="text-sm text-muted hover:text-foreground">
+        <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
           ← Torna alla home
         </Link>
         <h1 className="mt-6 font-display text-5xl font-bold tracking-tight">
           Recensioni
         </h1>
-        <p className="mt-4 max-w-xl text-muted">
+        <p className="mt-4 max-w-xl text-muted-foreground">
           Presto troverai qui le nostre analisi approfondite sui titoli più attesi.
         </p>
       </main>

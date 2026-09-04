@@ -29,13 +29,13 @@ function NovitaPage() {
         <div className="absolute top-1/4 right-[-10%] h-[560px] w-[560px] rounded-full bg-neon-2/22 blur-[130px]" />
       </div>
       <main className="relative mx-auto max-w-6xl px-5 py-24">
-        <Link to="/" className="text-sm text-muted hover:text-foreground">
+        <Link to="/" className="text-sm text-muted-foreground hover:text-foreground">
           ← Torna alla home
         </Link>
         <h1 className="mt-6 font-display text-5xl font-bold tracking-tight">
           Novità
         </h1>
-        <p className="mt-4 max-w-xl text-muted">
+        <p className="mt-4 max-w-xl text-muted-foreground">
           Resta aggiornato: a breve pubblicheremo tutte le news dalla scena gaming.
         </p>
       </main>
