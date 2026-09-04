@@ -24,94 +24,94 @@ var headers = ((m) => function headersRouteRule(event) {
 //#endregion
 //#region #nitro/virtual/public-assets-data
 var public_assets_data_default = {
-	"/favicon.ico": {
-		"type": "image/vnd.microsoft.icon",
-		"etag": "\"4f95-3RXc3p2mhEAs1WBwaIvE0Y0uu0Y\"",
-		"mtime": "2026-09-04T13:33:20.862Z",
-		"size": 20373,
-		"path": "../public/favicon.ico"
-	},
 	"/robots.txt": {
 		"type": "text/plain; charset=utf-8",
 		"etag": "\"a0-CKGXSIe7TSsqDTmGm/nY1t/o5d0\"",
-		"mtime": "2026-09-04T13:33:20.862Z",
+		"mtime": "2026-09-04T13:38:51.593Z",
 		"size": 160,
 		"path": "../public/robots.txt"
 	},
+	"/favicon.ico": {
+		"type": "image/vnd.microsoft.icon",
+		"etag": "\"4f95-3RXc3p2mhEAs1WBwaIvE0Y0uu0Y\"",
+		"mtime": "2026-09-04T13:38:51.593Z",
+		"size": 20373,
+		"path": "../public/favicon.ico"
+	},
 	"/version.json": {
 		"type": "application/json",
-		"etag": "\"12b-n24OlR4rVIWc1cX4gehW1eponFY\"",
-		"mtime": "2026-09-04T13:33:20.862Z",
+		"etag": "\"12b-n/C853JKxVdUkxP+TCuBg4aVa9A\"",
+		"mtime": "2026-09-04T13:38:51.593Z",
 		"size": 299,
 		"path": "../public/version.json"
-	},
-	"/assets/community-BROwGSCC.js": {
-		"type": "text/javascript; charset=utf-8",
-		"etag": "\"405-a2sT5WfkOLYGFEXvae1h51hLqVc\"",
-		"mtime": "2026-09-04T13:33:20.459Z",
-		"size": 1029,
-		"path": "../public/assets/community-BROwGSCC.js"
 	},
 	"/assets/cucina-stellare-Br9_6GLu.jpg": {
 		"type": "image/jpeg",
 		"etag": "\"1a64c-6TRdW3LNKdzdduggBanPQ/F18p4\"",
-		"mtime": "2026-09-04T13:33:20.459Z",
+		"mtime": "2026-09-04T13:38:51.237Z",
 		"size": 108108,
 		"path": "../public/assets/cucina-stellare-Br9_6GLu.jpg"
+	},
+	"/assets/community-BROwGSCC.js": {
+		"type": "text/javascript; charset=utf-8",
+		"etag": "\"405-a2sT5WfkOLYGFEXvae1h51hLqVc\"",
+		"mtime": "2026-09-04T13:38:51.237Z",
+		"size": 1029,
+		"path": "../public/assets/community-BROwGSCC.js"
 	},
 	"/assets/guide-CUaeZM70.js": {
 		"type": "text/javascript; charset=utf-8",
 		"etag": "\"37d-PpwMCfXElLSO+wUSCPVs+op7au8\"",
-		"mtime": "2026-09-04T13:33:20.459Z",
+		"mtime": "2026-09-04T13:38:51.237Z",
 		"size": 893,
 		"path": "../public/assets/guide-CUaeZM70.js"
 	},
 	"/assets/index-BbcDbJFp.js": {
 		"type": "text/javascript; charset=utf-8",
 		"etag": "\"54c70-EF58e6ZS+hlcD0V87mj+ygwnofY\"",
-		"mtime": "2026-09-04T13:33:20.458Z",
+		"mtime": "2026-09-04T13:38:51.236Z",
 		"size": 347248,
 		"path": "../public/assets/index-BbcDbJFp.js"
 	},
 	"/assets/nebula-drift-C_yeA_fZ.jpg": {
 		"type": "image/jpeg",
 		"etag": "\"1574d-3HkP/bZ+1oOQ3BhmoBfXxZhU6ZY\"",
-		"mtime": "2026-09-04T13:33:20.459Z",
+		"mtime": "2026-09-04T13:38:51.237Z",
 		"size": 87885,
 		"path": "../public/assets/nebula-drift-C_yeA_fZ.jpg"
 	},
 	"/assets/novita-9p-vkiUn.js": {
 		"type": "text/javascript; charset=utf-8",
 		"etag": "\"37f-mCHX7QOLCIyS7z15/+srOBWCw08\"",
-		"mtime": "2026-09-04T13:33:20.459Z",
+		"mtime": "2026-09-04T13:38:51.237Z",
 		"size": 895,
 		"path": "../public/assets/novita-9p-vkiUn.js"
 	},
 	"/assets/ombra-di-ferro-D6PeXrQW.jpg": {
 		"type": "image/jpeg",
 		"etag": "\"a300-dxkNr23fy09pTq6sMnV0kiejt00\"",
-		"mtime": "2026-09-04T13:33:20.459Z",
+		"mtime": "2026-09-04T13:38:51.237Z",
 		"size": 41728,
 		"path": "../public/assets/ombra-di-ferro-D6PeXrQW.jpg"
 	},
 	"/assets/recensioni-DFPtWH_H.js": {
 		"type": "text/javascript; charset=utf-8",
 		"etag": "\"37d-m4M7XKCHour3PWZ7cB+binGLacE\"",
-		"mtime": "2026-09-04T13:33:20.459Z",
+		"mtime": "2026-09-04T13:38:51.237Z",
 		"size": 893,
 		"path": "../public/assets/recensioni-DFPtWH_H.js"
 	},
 	"/assets/routes--Ya9ITLp.js": {
 		"type": "text/javascript; charset=utf-8",
 		"etag": "\"2404-IV/LSB+c0LREThqv1LpTWcRg6HI\"",
-		"mtime": "2026-09-04T13:33:20.459Z",
+		"mtime": "2026-09-04T13:38:51.237Z",
 		"size": 9220,
 		"path": "../public/assets/routes--Ya9ITLp.js"
 	},
 	"/assets/styles-H9Pi1BnO.css": {
 		"type": "text/css; charset=utf-8",
 		"etag": "\"13354-jyR3t7ugKGIXv6gJ6wSqJmXr3h4\"",
-		"mtime": "2026-09-04T13:33:20.459Z",
+		"mtime": "2026-09-04T13:38:51.237Z",
 		"size": 78676,
 		"path": "../public/assets/styles-H9Pi1BnO.css"
 	}
