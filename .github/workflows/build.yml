@@ -1,0 +1,202 @@
+# PSLI-4599 — catena di build del sito FINASI Healthcare (Lovable → GitHub → Plesk)
+#
+# Flusso: Lovable committa su `main` → questo workflow builda → pubblica l'artefatto
+# sul branch `deploy` (quello che Plesk seguirà) → notifica via mail a ogni
+# conclusione, sia a buon fine sia in errore.
+#
+# ATTENZIONE — l'artefatto NON è un sito statico. Il template Lovable di questo
+# progetto (tanstack_start_ts) è un'app TanStack Start con SSR: il build produce
+# `.output/`, che va eseguito da Node (`node server/index.mjs`), e non contiene
+# alcun index.html. Plesk deve quindi ospitarlo come applicazione Node.js, non
+# come docroot statica. Vedi la sezione "Analisi" di ../PSLI-4599.md.
+#
+# SECRET richiesti (Settings → Secrets and variables → Actions → Secrets):
+#   SMTP_SERVER      es. smtp.office365.com
+#   SMTP_PORT        es. 587
+#   SMTP_USERNAME    casella mittente
+#   SMTP_PASSWORD    password o app password della casella mittente
+# VARIABLE richieste (stessa pagina, tab Variables):
+#   NOTIFY_FROM      mittente della mail
+#   NOTIFY_TO        destinatari separati da virgola (Digitag + noi)
+#
+# Le action sono pinnate al tag major: per la produzione conviene pinnare al SHA.
+
+name: Build, publish e notifica
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Serve solo a pubblicare il branch `deploy`. `main` non viene mai toccato:
+# AGENTS.md di Lovable vieta di riscrivere la storia del branch collegato.
+permissions:
+  contents: write
+
+# Se Lovable fa due push ravvicinati, tiene solo il build più recente.
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Il default del template è il preset `cloudflare-module` (genera wrangler.json
+  # ed è eseguibile solo su Cloudflare Workers). Lo forziamo a Node, che è
+  # l'unico artefatto ospitabile su Plesk. Verificato: risponde HTTP 200.
+  NITRO_PRESET: node_server
+  BUILD_OUTPUT: .output
+  DEPLOY_BRANCH: deploy
+
+jobs:
+  build:
+    name: Build e pubblicazione
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Un job non deve poter andare verde senza aver notificato. `to` è
+      # dichiarato `required: false` nell'action, e GitHub non valida comunque i
+      # campi `required`: con NOTIFY_TO vuoto il build resta verde e non spedisce
+      # nulla. Errore tipico: NOTIFY_FROM/NOTIFY_TO creati come *secrets* invece
+      # che come *variables*, perché qui si leggono con `vars.`.
+      # Sta in testa al job per fallire in pochi secondi, non dopo il build.
+      - name: Verifica la configurazione delle notifiche
+        env:
+          NOTIFY_FROM: ${{ vars.NOTIFY_FROM }}
+          NOTIFY_TO: ${{ vars.NOTIFY_TO }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        run: |
+          fail=0
+          # Dei secret stampo solo la presenza, mai il valore (GitHub li
+          # mascherebbe comunque con ***).
+          for v in SMTP_SERVER SMTP_PORT SMTP_USERNAME SMTP_PASSWORD; do
+            if [ -n "${!v}" ]; then echo "  $v: impostato"; else echo "  $v: MANCANTE"; fail=1; fi
+          done
+          # Mittente e destinatari non sono segreti e sono ciò che va verificato:
+          # li stampo in chiaro. Se dà fastidio averli nel log, togli queste righe
+          # una volta che il flusso funziona.
+          for v in NOTIFY_FROM NOTIFY_TO; do
+            if [ -n "${!v}" ]; then echo "  $v = ${!v}"; else echo "  $v: MANCANTE"; fail=1; fi
+          done
+          if [ "$fail" = "1" ]; then
+            echo "::error::Configurazione notifiche incompleta: la mail non partirebbe e il build andrebbe verde. NOTIFY_FROM e NOTIFY_TO vanno in Settings -> Secrets and variables -> Actions, tab Variables; i quattro SMTP_* nel tab Secrets."
+            exit 1
+          fi
+
+      # Il repo di Lovable contiene bun.lock e NON package-lock.json:
+      # `npm ci` fallirebbe. Bun è anche ciò che usa Lovable a monte (bunfig.toml).
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Segna l'inizio del build
+        id: start
+        run: echo "epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
+
+      - name: Install dipendenze
+        run: bun install --frozen-lockfile
+
+      # DEVE stare prima del build: nitro enumera gli asset statici in fase di
+      # build, quindi un file aggiunto a .output/public dopo non viene servito
+      # (verificato: risponde 404). Serve a far dichiarare a staging e produzione
+      # quale versione stanno mostrando, senza aprire Git — mitigazione del
+      # rischio RS1 descritto in PSLI-4599.md. Se non la vuoi, elimina lo step.
+      #
+      # Il messaggio di commit arriva da Lovable ed è testo arbitrario: passa da
+      # `env` e non interpolato nello script, altrimenti un commit contenente
+      # backtick o $(...) verrebbe eseguito dalla shell.
+      - name: Scrivi public/version.json
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message || 'build manuale' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          jq -n \
+            --arg commit "$GITHUB_SHA" \
+            --arg short "${GITHUB_SHA:0:7}" \
+            --arg message "$(printf '%s' "$COMMIT_MESSAGE" | head -1)" \
+            --arg built_at "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --arg run "$RUN_URL" \
+            '{commit: $commit, commit_short: $short, message: $message, built_at: $built_at, run: $run}' \
+            > public/version.json
+          cat public/version.json
+
+      - name: Build
+        run: bun run build
+
+      # Guardia: se il preset tornasse a cloudflare, l'artefatto sarebbe
+      # inservibile su Plesk e il build deve fallire subito, non dopo il deploy.
+      - name: Verifica che l'artefatto sia eseguibile da Node
+        run: |
+          preset=$(jq -r .preset "$BUILD_OUTPUT/nitro.json")
+          echo "preset: $preset"
+          test "$preset" = "node-server"
+          test -f "$BUILD_OUTPUT/server/index.mjs"
+
+      # force_orphan resta FALSE: un branch force-pushato riscrive la storia
+      # (vietato da AGENTS.md) e rischia di rompere il pull di Plesk (RS2).
+      - name: Pubblica l'artefatto sul branch di deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ${{ env.BUILD_OUTPUT }}
+          publish_branch: ${{ env.DEPLOY_BRANCH }}
+          force_orphan: false
+          user_name: github-actions[bot]
+          user_email: github-actions[bot]@users.noreply.github.com
+          commit_message: "build da ${{ github.sha }}"
+
+      - name: Calcola la durata
+        id: duration
+        if: always()
+        run: |
+          secs=$(( $(date +%s) - ${{ steps.start.outputs.epoch }} ))
+          echo "human=$((secs / 60))m $((secs % 60))s" >> "$GITHUB_OUTPUT"
+
+      # ---------------------------------------------------------------------
+      # Notifica: `always()`, quindi parte a ogni conclusione — successo,
+      # fallimento e annullamento. Copre il requisito R3 del doc di analisi
+      # (notifica in caso di failure) e lo estende agli altri esiti.
+      # ---------------------------------------------------------------------
+
+      # v3 dichiarava `using: node20` ed è l'origine del warning di deprecazione;
+      # v18 gira su node24. Gli input usati qui sono gli stessi nelle due versioni.
+      #
+      # nodemailerlog/nodemailerdebug stampano il dialogo SMTP nel log: servono a
+      # capire dove si ferma la consegna (tipicamente l'AUTH su Microsoft 365).
+      # Da togliere quando il flusso è verificato.
+      - name: Notifica via mail
+        if: always()
+        uses: dawidd6/action-send-mail@v18
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          secure: false
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          nodemailerlog: true
+          nodemailerdebug: true
+          from: Builder <${{ vars.NOTIFY_FROM }}>
+          to: ${{ vars.NOTIFY_TO }}
+          subject: >-
+            [Test Build]
+            ${{ job.status == 'success' && 'Build completato' || job.status == 'cancelled' && 'Build annullato' || 'BUILD FALLITO' }}
+            — ${{ github.repository }}
+          body: |
+            Esito: ${{ job.status }}
+            Durata: ${{ steps.duration.outputs.human }}
+
+            Modifica: ${{ github.event.head_commit.message || 'build avviato manualmente' }}
+            Autore: ${{ github.event.head_commit.author.name || github.actor }}
+            Commit: ${{ github.sha }}
+
+            ${{ job.status == 'success'
+                && format('Il branch `{0}` è aggiornato: si può fare il Deploy da Plesk in staging.', env.DEPLOY_BRANCH)
+                || 'Il branch di deploy NON è stato aggiornato: staging e produzione restano sulla versione precedente.' }}
+
+            Dettaglio del build:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
