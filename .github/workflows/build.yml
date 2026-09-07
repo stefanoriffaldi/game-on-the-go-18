@@ -215,19 +215,54 @@ jobs:
           echo "human=$((secs / 60))m $((secs % 60))s" >> "$GITHUB_OUTPUT"
 
       # ---------------------------------------------------------------------
-      # Notifica: `always()`, quindi parte a ogni conclusione — successo,
-      # fallimento e annullamento. Copre il requisito R3 del doc di analisi
-      # (notifica in caso di failure) e lo estende agli altri esiti.
-      # ---------------------------------------------------------------------
-
+      # Notifiche: due step mutuamente esclusivi, uno per esito.
+      #   OK  -> `success()`               : messaggio completo
+      #   KO  -> `failure() || cancelled()`: messaggio minimale
+      # Insieme coprono ogni conclusione, come `always()` faceva prima: il
+      # requisito R12 chiede la notifica a ogni build, quindi l'annullamento
+      # (che con `cancel-in-progress: true` capita quando Lovable fa due push
+      # ravvicinati) va nel ramo KO e non resta silenzioso.
+      #
       # v3 dichiarava `using: node20` ed è l'origine del warning di deprecazione;
       # v18 gira su node24. Gli input usati qui sono gli stessi nelle due versioni.
       #
       # nodemailerlog/nodemailerdebug stampano il dialogo SMTP nel log: servono a
       # capire dove si ferma la consegna (tipicamente l'AUTH su Microsoft 365).
-      # Da togliere quando il flusso è verificato.
-      - name: Notifica via mail
-        if: always()
+      # Da togliere da entrambi gli step quando il flusso è verificato.
+      # ---------------------------------------------------------------------
+
+      - name: Notifica via mail (build ok)
+        if: success()
+        uses: dawidd6/action-send-mail@v18
+        with:
+          server_address: ${{ secrets.SMTP_SERVER }}
+          server_port: ${{ secrets.SMTP_PORT }}
+          secure: false
+          username: ${{ secrets.SMTP_USERNAME }}
+          password: ${{ secrets.SMTP_PASSWORD }}
+          nodemailerlog: true
+          nodemailerdebug: true
+          from: Builder <${{ vars.NOTIFY_FROM }}>
+          to: ${{ vars.NOTIFY_TO }}
+          subject: >-
+            [Test Build] Build completato — ${{ github.repository }}
+          body: |
+            Esito: ${{ job.status }}
+            Durata: ${{ steps.duration.outputs.human }}
+
+            Modifica: ${{ github.event.head_commit.message || 'build avviato manualmente' }}
+            Autore: ${{ github.event.head_commit.author.name || github.actor }}
+            Commit: ${{ github.sha }}
+
+            ${{ format('Il branch `{0}` è aggiornato: si può fare il Deploy da Plesk in staging.', env.DEPLOY_BRANCH) }}
+
+            Dettaglio del build:
+            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+      # Corpo minimale, ma con le due informazioni che servono davvero a chi
+      # riceve la mail: che la modifica non è online, e dove guardare.
+      - name: Notifica via mail (build ko)
+        if: failure() || cancelled()
         uses: dawidd6/action-send-mail@v18
         with:
           server_address: ${{ secrets.SMTP_SERVER }}
@@ -241,19 +276,12 @@ jobs:
           to: ${{ vars.NOTIFY_TO }}
           subject: >-
             [Test Build]
-            ${{ job.status == 'success' && 'Build completato' || job.status == 'cancelled' && 'Build annullato' || 'BUILD FALLITO' }}
+            ${{ job.status == 'cancelled' && 'Build annullato' || 'BUILD FALLITO' }}
             — ${{ github.repository }}
           body: |
             Esito: ${{ job.status }}
-            Durata: ${{ steps.duration.outputs.human }}
 
-            Modifica: ${{ github.event.head_commit.message || 'build avviato manualmente' }}
-            Autore: ${{ github.event.head_commit.author.name || github.actor }}
-            Commit: ${{ github.sha }}
+            La modifica NON è online: staging e produzione restano sulla
+            versione precedente.
 
-            ${{ job.status == 'success'
-                && format('Il branch `{0}` è aggiornato: si può fare il Deploy da Plesk in staging.', env.DEPLOY_BRANCH)
-                || 'Il branch di deploy NON è stato aggiornato: staging e produzione restano sulla versione precedente.' }}
-
-            Dettaglio del build:
-            ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Log: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
