@@ -1,7 +1,7 @@
 {
-  "commit": "bfd818e4c5b2b268106319431557951112b4ce43",
-  "commit_short": "bfd818e",
-  "message": "ci: catena di build con pubblicazione su branch deploy e notifiche",
-  "built_at": "2026-09-04T14:14:11Z",
-  "run": "https://github.com/stefanoriffaldi/game-on-the-go-18/actions/runs/33882534069"
+  "commit": "8e8a01284d82156d453a2bd6dbaa6454c4d3885f",
+  "commit_short": "8e8a012",
+  "message": "ci: isola la fase di build per commutare fra i due template Lovable",
+  "built_at": "2026-09-07T09:52:37Z",
+  "run": "https://github.com/stefanoriffaldi/game-on-the-go-18/actions/runs/34108434799"
 }
