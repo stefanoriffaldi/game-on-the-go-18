@@ -1,7 +1,7 @@
 {
-  "commit": "8e8a01284d82156d453a2bd6dbaa6454c4d3885f",
-  "commit_short": "8e8a012",
-  "message": "ci: isola la fase di build per commutare fra i due template Lovable",
-  "built_at": "2026-09-07T09:52:37Z",
-  "run": "https://github.com/stefanoriffaldi/game-on-the-go-18/actions/runs/34108434799"
+  "commit": "7f0f40ae03ef596fec3894c2459d57c7cd88c1bb",
+  "commit_short": "7f0f40a",
+  "message": "ci: differenzia il corpo della mail fra build ok e build ko",
+  "built_at": "2026-09-07T10:04:50Z",
+  "run": "https://github.com/stefanoriffaldi/game-on-the-go-18/actions/runs/34109509323"
 }
