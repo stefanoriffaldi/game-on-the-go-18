@@ -4,18 +4,33 @@
 # sul branch `deploy` (quello che Plesk seguirà) → notifica via mail a ogni
 # conclusione, sia a buon fine sia in errore.
 #
-# ATTENZIONE — l'artefatto NON è un sito statico. Il template Lovable di questo
-# progetto (tanstack_start_ts) è un'app TanStack Start con SSR: il build produce
-# `.output/`, che va eseguito da Node (`node server/index.mjs`), e non contiene
-# alcun index.html. Plesk deve quindi ospitarlo come applicazione Node.js, non
-# come docroot statica. Vedi la sezione "Analisi" di ../PSLI-4599.md.
+# ┌───────────────────────────────────────────────────────────────────────────┐
+# │ DUE VARIANTI, SECONDO IL TEMPLATE LOVABLE DEL PROGETTO                    │
+# │                                                                           │
+# │ A) tanstack_start_ts_current — SSR (TanStack Start + Nitro)               │
+# │    bun.lock · bun install · build in .output/ · nessun index.html         │
+# │    Plesk deve ospitarlo come APPLICAZIONE NODE.JS                         │
+# │                                                                           │
+# │ B) vite_react_shadcn_ts — SPA statica                                     │
+# │    package-lock.json · npm ci · build in dist/ · index.html in radice     │
+# │    Plesk lo ospita come DOCROOT STATICA                                   │
+# │                                                                           │
+# │ Il template si sceglie alla creazione del progetto e non è un interruttore:│
+# │ decide il bersaglio del deploy, non il flusso. Tutto il resto di questo    │
+# │ workflow è identico nelle due varianti.                                   │
+# │                                                                           │
+# │ PER CAMBIARE VARIANTE servono due modifiche, e solo due:                  │
+# │   1. il blocco `env:` qui sotto                                           │
+# │   2. il BLOCCO BUILD, più in basso                                        │
+# │ Entrambi sono delimitati e riportano la variante attiva.                  │
+# └───────────────────────────────────────────────────────────────────────────┘
 #
 # SECRET richiesti (Settings → Secrets and variables → Actions → Secrets):
 #   SMTP_SERVER      es. smtp.office365.com
-#   SMTP_PORT        es. 587
+#   SMTP_PORT        es. 587 (se usi 465, metti `secure: true` nello step mail)
 #   SMTP_USERNAME    casella mittente
 #   SMTP_PASSWORD    password o app password della casella mittente
-# VARIABLE richieste (stessa pagina, tab Variables):
+# VARIABLE richieste (stessa pagina, tab Variables — NON fra i Secrets):
 #   NOTIFY_FROM      mittente della mail
 #   NOTIFY_TO        destinatari separati da virgola (Digitag + noi)
 #
@@ -39,11 +54,20 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Il default del template è il preset `cloudflare-module` (genera wrangler.json
-  # ed è eseguibile solo su Cloudflare Workers). Lo forziamo a Node, che è
-  # l'unico artefatto ospitabile su Plesk. Verificato: risponde HTTP 200.
+  # ==== [1/2] DIPENDE DAL TEMPLATE ==========================================
+
+  # ---- [1/2] VARIANTE A — SSR (tanstack_start_ts_current) ------- ATTIVA ----
+  # Il default del template è il preset `cloudflare-module`, eseguibile solo su
+  # Cloudflare Workers. Lo forziamo a Node, unico artefatto ospitabile su Plesk.
   NITRO_PRESET: node_server
   BUILD_OUTPUT: .output
+
+  # ---- [1/2] VARIANTE B — SPA statica (vite_react_shadcn_ts) - DISATTIVA ----
+  # BUILD_OUTPUT: dist
+  # (NITRO_PRESET non serve: va lasciato commentato)
+
+  # ==== fine sezione dipendente dal template =================================
+
   DEPLOY_BRANCH: deploy
 
 jobs:
@@ -87,25 +111,16 @@ jobs:
             exit 1
           fi
 
-      # Il repo di Lovable contiene bun.lock e NON package-lock.json:
-      # `npm ci` fallirebbe. Bun è anche ciò che usa Lovable a monte (bunfig.toml).
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
       - name: Segna l'inizio del build
         id: start
         run: echo "epoch=$(date +%s)" >> "$GITHUB_OUTPUT"
 
-      - name: Install dipendenze
-        run: bun install --frozen-lockfile
-
-      # DEVE stare prima del build: nitro enumera gli asset statici in fase di
-      # build, quindi un file aggiunto a .output/public dopo non viene servito
-      # (verificato: risponde 404). Serve a far dichiarare a staging e produzione
-      # quale versione stanno mostrando, senza aprire Git — mitigazione del
-      # rischio RS1 descritto in PSLI-4599.md. Se non la vuoi, elimina lo step.
+      # DEVE stare prima del build, in entrambe le varianti: sia Nitro sia Vite
+      # raccolgono `public/` in fase di build, quindi un file aggiunto dopo
+      # all'artefatto non viene servito (verificato: risponde 404). Serve a far
+      # dichiarare a staging e produzione quale versione stanno mostrando, senza
+      # aprire Git — mitigazione del rischio RS1 in PSLI-4599.md. Se non la vuoi,
+      # elimina lo step: non dipende dal template.
       #
       # Il messaggio di commit arriva da Lovable ed è testo arbitrario: passa da
       # `env` e non interpolato nello script, altrimenti un commit contenente
@@ -125,7 +140,25 @@ jobs:
             > public/version.json
           cat public/version.json
 
-      - name: Build
+      # ==== [2/2] BLOCCO BUILD — DIPENDE DAL TEMPLATE =======================
+      # Per cambiare variante: commenta il blocco attivo, scommenta l'altro, e
+      # allinea `env:` in testa al file. Nient'altro va toccato.
+      # I delimitatori sono a riga singola di proposito: un riquadro avrebbe il
+      # bordo dentro il blocco, e scommentandolo si romperebbe lo YAML.
+
+      # ---- [2/2] VARIANTE A — SSR (tanstack_start_ts_current) ------ ATTIVA ----
+      # Il repo ha bun.lock e NON package-lock.json: `npm ci` fallirebbe. Bun è
+      # anche ciò che usa Lovable a monte, e `bunfig.toml` contiene un presidio
+      # di supply chain (minimumReleaseAge) che npm non leggerebbe.
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dipendenze (bun)
+        run: bun install --frozen-lockfile
+
+      - name: Build (bun)
         run: bun run build
 
       # Guardia: se il preset tornasse a cloudflare, l'artefatto sarebbe
@@ -136,6 +169,30 @@ jobs:
           echo "preset: $preset"
           test "$preset" = "node-server"
           test -f "$BUILD_OUTPUT/server/index.mjs"
+
+      # ---- [2/2] VARIANTE B — SPA statica (vite_react_shadcn_ts) DISATTIVA ----
+      # - name: Setup Node
+      #   uses: actions/setup-node@v7
+      #   with:
+      #     node-version: '22'
+      #     cache: 'npm'
+      #
+      # - name: Install dipendenze (npm)
+      #   run: npm ci
+      #
+      # - name: Build (npm)
+      #   run: npm run build
+      #
+      # # Guardia simmetrica a quella della variante A: qui l'artefatto deve
+      # # essere statico, quindi index.html deve esserci e NON deve esserci un
+      # # bundle server, che indicherebbe il template sbagliato.
+      # - name: Verifica che l'artefatto sia statico
+      #   run: |
+      #     test -f "$BUILD_OUTPUT/index.html"
+      #     test ! -d "$BUILD_OUTPUT/server"
+      #     echo "artefatto statico: $(find "$BUILD_OUTPUT" -type f | wc -l) file"
+
+      # ==== FINE BLOCCO BUILD — da qui nulla dipende dal template ===========
 
       # force_orphan resta FALSE: un branch force-pushato riscrive la storia
       # (vietato da AGENTS.md) e rischia di rompere il pull di Plesk (RS2).
